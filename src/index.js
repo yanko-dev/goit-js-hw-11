@@ -32,12 +32,10 @@ function onSearch(e) {
     loadMoreBtn.hide()
 
     imgApiService.query = e.currentTarget.elements.searchQuery.value.trim();
-    console.log('Query: ', e.currentTarget.elements.searchQuery.value);
+    // console.log('Query: ', e.currentTarget.elements.searchQuery.value);
     
     if(!imgApiService.query) {
-        Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-        clearInputValue();
-        loadMoreBtn.hide();
+        failureImgMessage()
         return;
     }
 
@@ -45,9 +43,7 @@ function onSearch(e) {
     imgApiService.getImages()
         .then(images =>  {
             if(images.data.hits.length === 0) {
-                Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-                clearInputValue();
-                loadMoreBtn.hide();
+                failureImgMessage()
                 return;
             }
 
@@ -56,10 +52,9 @@ function onSearch(e) {
             loadMoreBtn.enable();
 
             if(images.data.hits.length < 40) {
-                Notify.info("We're sorry, but you've reached the end of search results.");
-                loadMoreBtn.hide();
+                fewImgMessage()
             }
-            
+
         })
         .catch(error => console.log(error))
         .finally(() => {clearInputValue()})
@@ -75,8 +70,7 @@ function onLoadMoreBtnClick(e) {
             loadMoreBtn.enable();
 
             if(images.data.hits.length < 40) {
-                Notify.info("We're sorry, but you've reached the end of search results.");
-                loadMoreBtn.hide();
+                fewImgMessage()
             }
         })
         .catch(error => console.log(error))
@@ -131,4 +125,15 @@ function clearInputValue() {
 
 function onSmalImgClick(e) {
     e.preventDefault();
+}
+
+function fewImgMessage() {
+    Notify.info("We're sorry, but you've reached the end of search results.");
+    loadMoreBtn.hide();
+}
+
+function failureImgMessage() {
+    Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+    clearInputValue();
+    loadMoreBtn.hide();
 }

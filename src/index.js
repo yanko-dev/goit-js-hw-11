@@ -51,9 +51,15 @@ function onSearch(e) {
                 return;
             }
 
+            Notify.success(`Hooray! We found ${images.data.totalHits} images.`);
             appendGalleryMurkup(images);
             loadMoreBtn.enable();
 
+            if(images.data.hits.length < 40) {
+                Notify.info("We're sorry, but you've reached the end of search results.");
+                loadMoreBtn.hide();
+            }
+            
         })
         .catch(error => console.log(error))
         .finally(() => {clearInputValue()})
@@ -65,10 +71,6 @@ function onLoadMoreBtnClick(e) {
     
     return imgApiService.getImages()
         .then(images =>  {
-            if(images.data.hits.length < 40) {
-                Notify.info("We're sorry, but you've reached the end of search results.");
-                loadMoreBtn.hide();
-            }
             appendGalleryMurkup(images);
             loadMoreBtn.enable();
 
@@ -81,23 +83,7 @@ function onLoadMoreBtnClick(e) {
 }
 
 function appendGalleryMurkup(pictures) {
-    const perPageImgCount = pictures.data.hits.length
-    const totalImgCount = pictures.data.totalHits;
     const images = pictures.data.hits;
-
-    // if(!perPageImgCount) {
-    //     Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-    //     clearInputValue();
-    //     loadMoreBtn.hide();
-    //     console.log('Render Query', imgApiService.query);
-    //     console.log('perPageImgCount: ', perPageImgCount === true);
-
-    //     return;
-    // }
-
-    if(totalImgCount > 0) {
-        Notify.success(`Hooray! We found ${totalImgCount} images.`);
-    }
 
     const markup = images
         .map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => 

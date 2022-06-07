@@ -1,3 +1,7 @@
+1. Load more показівается при "неправильном запросе" и не убирается, когда маньше 40 картинок.
+
+2. 
+
 **Read in other languages: [Русский](README.md), [Polski](README.pl.md).**
 
 # Parcel template

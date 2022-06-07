@@ -27,3 +27,44 @@ header {
     border: 0;
     border-radius: 0 3px 3px 0;
 }
+
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.gallery-item > img {
+    height: 200px;
+}
+
+.photo-card {
+    margin: 15px 15px 0 0;
+    border-radius: 3px;
+    box-shadow: 4px 4px 8px 0px rgba(34, 60, 80, 0.2);
+    
+}
+
+.info {
+    display: flex;
+    justify-content: space-around;;
+}
+
+.load {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+}
+
+.load-more {
+    border: 0;
+    border-radius: 3px;
+    box-shadow: 4px 4px 8px 0px rgba(34, 60, 80, 0.2);
+    padding: 10px 20px 10px 20px;
+    color: #eee;
+    background-color: #003fb3;
+}
+
+.is-hidden {
+    display: none;
+}

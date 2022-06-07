@@ -1,57 +1,133 @@
-import getImages from './js/getImages';
-// import { Notify } from 'notiflix';
+import ImgApiService from './js/imgApiService';
+import LoadMoreBtn from './js/load-more-btn';
+import { Notify } from 'notiflix';
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 
-// Resf
 const refs = {
-    // form: document.querySelector('.search-form'),
+    form: document.querySelector('.search-form'),
     inputSearch: document.querySelector('.search-form input'),
-    searchBtn: document.querySelector('.search-form button'),
     gallery: document.querySelector('.gallery'),
-    loadMoreBtn: document.querySelector('.load button'),
 };
 
-const {form, inputSearch, searchBtn, loadMoreBtn} = refs;
+const {gallery, inputSearch, form } = refs;
 
-// Event Listeners
-inputSearch.addEventListener('input', onInputSerch);
-searchBtn.addEventListener('click', onSearchBtnClick);
-loadMoreBtn.addEventListener('click', onLoadMoreBtnClick);
 
-// Listener Functions
-function onInputSerch(e) {
-    console.log(e.currentTarget.value);
-    return e.currentTarget.value;
-}
+const imgApiService = new ImgApiService();
 
-function onSearchBtnClick(e) {
+const loadMoreBtn = new LoadMoreBtn({
+    selector: '.load-more',
+    hidden: true,
+});
+
+form.addEventListener('submit', onSearch);
+loadMoreBtn.refs.button.addEventListener('click', onLoadMoreBtnClick);
+gallery.addEventListener('click', onSmalImgClick);
+
+function onSearch(e) {
     e.preventDefault();
-    console.log('onSearchBtnClick');
+
+    imgApiService.page = 1;
+    clearGalleryContainer()
+    loadMoreBtn.hide()
+
+    imgApiService.query = e.currentTarget.elements.searchQuery.value.trim();
+    console.log('Query: ', e.currentTarget.elements.searchQuery.value);
+    
+    if(imgApiService.query === '') {
+        Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+        clearInputValue();
+        loadMoreBtn.hide();
+        return;
+    }
+
+    imgApiService.resetPage();
+    imgApiService.getImages()
+        .then(images =>  {
+            appendGalleryMurkup(images);
+            loadMoreBtn.enable();
+        })
+        .catch(error => console.log(error))
+        .finally(() => {clearInputValue()})
 }
 
-function onLoadMoreBtnClick() {
-    console.log('onLoadMoreBtnClick')
+function onLoadMoreBtnClick(e) {
+    e.preventDefault();
+    loadMoreBtn.disabled();
+    
+    return imgApiService.getImages()
+        .then(images =>  {
+            appendGalleryMurkup(images);
+            loadMoreBtn.enable();
+        })
+        .catch(error => console.log(error))
 }
 
-getImages();
+function appendGalleryMurkup(pictures) {
+    const perPageImgCount = pictures.data.hits.length
+    const totalImgCount = pictures.data.totalHits;
+    const images = pictures.data.hits;
 
+    if(totalImgCount === 0) {
+        Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+        clearInputValue()
+        loadMoreBtn.hide();
 
+        return;
+    }
 
+    if(totalImgCount > 0) {
+        Notify.success(`Hooray! We found ${totalImgCount} images.`);
+    }
 
-    // Gallery Card Marckup Template
-    // <div class="photo-card">
-        // <img src="" alt="" loading="lazy" />
-        // <div class="info">
-    //     <p class="info-item">
-    //     <b>Likes</b>
-    //     </p>
-    //     <p class="info-item">
-    //     <b>Views</b>
-    //     </p>
-    //     <p class="info-item">
-    //     <b>Comments</b>
-    //     </p>
-    //     <p class="info-item">
-    //     <b>Downloads</b>
-    //     </p>
-    // </div>
-    // </div>
+    const markup = images
+        .map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => 
+        `<div class="photo-card">
+        <a class="gallery-item" href="${largeImageURL}">
+            <img src="${webformatURL}" alt="${tags}" width = "300" height = "200" loading="lazy" />
+        </a>
+            <div class="info">
+                <p class="info-item">
+                    <b>Likes</b>
+                    <br>${likes}
+                </p>
+                <p class="info-item">
+                    <b>Views</b>
+                    <br>${views}
+                </p>
+                <p class="info-item">
+                    <b>Comments</b>
+                    <br>${comments}
+                </p>
+                <p class="info-item">
+                    <b>Downloads</b>
+                    <br>${downloads}
+                </p>
+            </div>
+        </div>`).join('');
+
+    gallery.insertAdjacentHTML('beforeend', markup);
+    clearInputValue();
+
+    let lightbox = new SimpleLightbox('.photo-card a', {
+        close: true,
+        captions: true,
+    });
+
+    if(perPageImgCount < 40) {
+        loadMoreBtn.hide()
+        Notify.info("We're sorry, but you've reached the end of search results.");
+    }
+}
+
+function clearGalleryContainer() {
+    gallery.innerHTML = '';
+}
+
+function clearInputValue() {
+    inputSearch.value = '';
+}
+
+function onSmalImgClick(e) {
+    e.preventDefault();
+}

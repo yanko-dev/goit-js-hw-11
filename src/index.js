@@ -34,7 +34,7 @@ function onSearch(e) {
     imgApiService.query = e.currentTarget.elements.searchQuery.value.trim();
     console.log('Query: ', e.currentTarget.elements.searchQuery.value);
     
-    if(imgApiService.query === '') {
+    if(!imgApiService.query) {
         Notify.failure('Sorry, there are no images matching your search query. Please try again.');
         clearInputValue();
         loadMoreBtn.hide();
@@ -44,8 +44,16 @@ function onSearch(e) {
     imgApiService.resetPage();
     imgApiService.getImages()
         .then(images =>  {
+            if(images.data.hits.length === 0) {
+                Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+                clearInputValue();
+                loadMoreBtn.hide();
+                return;
+            }
+
             appendGalleryMurkup(images);
             loadMoreBtn.enable();
+
         })
         .catch(error => console.log(error))
         .finally(() => {clearInputValue()})
@@ -57,8 +65,17 @@ function onLoadMoreBtnClick(e) {
     
     return imgApiService.getImages()
         .then(images =>  {
+            if(images.data.hits.length < 40) {
+                Notify.info("We're sorry, but you've reached the end of search results.");
+                loadMoreBtn.hide();
+            }
             appendGalleryMurkup(images);
             loadMoreBtn.enable();
+
+            if(images.data.hits.length < 40) {
+                Notify.info("We're sorry, but you've reached the end of search results.");
+                loadMoreBtn.hide();
+            }
         })
         .catch(error => console.log(error))
 }
@@ -68,13 +85,15 @@ function appendGalleryMurkup(pictures) {
     const totalImgCount = pictures.data.totalHits;
     const images = pictures.data.hits;
 
-    if(totalImgCount === 0) {
-        Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-        clearInputValue()
-        loadMoreBtn.hide();
+    // if(!perPageImgCount) {
+    //     Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+    //     clearInputValue();
+    //     loadMoreBtn.hide();
+    //     console.log('Render Query', imgApiService.query);
+    //     console.log('perPageImgCount: ', perPageImgCount === true);
 
-        return;
-    }
+    //     return;
+    // }
 
     if(totalImgCount > 0) {
         Notify.success(`Hooray! We found ${totalImgCount} images.`);
@@ -114,10 +133,6 @@ function appendGalleryMurkup(pictures) {
         captions: true,
     });
 
-    if(perPageImgCount < 40) {
-        loadMoreBtn.hide()
-        Notify.info("We're sorry, but you've reached the end of search results.");
-    }
 }
 
 function clearGalleryContainer() {

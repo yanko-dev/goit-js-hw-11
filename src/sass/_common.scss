@@ -32,6 +32,8 @@ header {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    max-width: 1280px;
+    margin: 0 auto;
 }
 
 .gallery-item > img {
